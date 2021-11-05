@@ -22,7 +22,7 @@
                             "actions": [
                                 {
                                     "iotTopicPublish": {
-                                        "mqttTopic": "$aws/things/01238cfb5a5b7f7a01/shadow/update",
+                                        "mqttTopic": "$aws/things/<<your device ID>>/shadow/update",
                                         "payload": {
                                             "contentExpression": "'{ \"state\": { \"desired\": { \"testDesired\": true, \"thres_fr_aws\": ${$variable.countThreshold}, \"count_fr_aws\": ${$variable.testReported_count} } } }'",
                                             "type": "JSON"
@@ -231,7 +231,7 @@
                             "actions": [
                                 {
                                     "iotTopicPublish": {
-                                        "mqttTopic": "$aws/things/01238cfb5a5b7f7a01/shadow/update",
+                                        "mqttTopic": "$aws/things/<<your device ID>>/shadow/update",
                                         "payload": {
                                             "contentExpression": "'{ \"state\": { \"desired\": { \"testDesired\": false, \"thres_fr_aws\": ${$variable.countThreshold}, \"count_fr_aws\": ${$variable.testReported_count} } } }'",
                                             "type": "JSON"
@@ -297,7 +297,7 @@
                             "actions": [
                                 {
                                     "iotTopicPublish": {
-                                        "mqttTopic": "$aws/things/01238cfb5a5b7f7a01/shadow/update",
+                                        "mqttTopic": "$aws/things/<<your device ID>>/shadow/update",
                                         "payload": {
                                             "contentExpression": "'{ \"state\": { \"desired\": { \"thres_fr_aws\": ${$variable.countThreshold}, \"count_fr_aws\": ${$variable.testReported_count} } } }'",
                                             "type": "JSON"
