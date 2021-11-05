@@ -1,0 +1,323 @@
+{
+    "detectorModelDefinition": {
+        "states": [
+            {
+                "stateName": "Enabled_State",
+                "onInput": {
+                    "events": [],
+                    "transitionEvents": [
+                        {
+                            "eventName": "Enabled",
+                            "condition": "true",
+                            "actions": [],
+                            "nextState": "Counting"
+                        }
+                    ]
+                },
+                "onEnter": {
+                    "events": [
+                        {
+                            "eventName": "testDesired_true",
+                            "condition": "true",
+                            "actions": [
+                                {
+                                    "iotTopicPublish": {
+                                        "mqttTopic": "$aws/things/01238cfb5a5b7f7a01/shadow/update",
+                                        "payload": {
+                                            "contentExpression": "'{ \"state\": { \"desired\": { \"testDesired\": true, \"thres_fr_aws\": ${$variable.countThreshold}, \"count_fr_aws\": ${$variable.testReported_count} } } }'",
+                                            "type": "JSON"
+                                        }
+                                    }
+                                },
+                                {
+                                    "setVariable": {
+                                        "variableName": "testDesired_state",
+                                        "value": "true"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "eventName": "enabled_prev1",
+                            "condition": "true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "enabled_prev",
+                                        "value": "true"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "eventName": "disabled_prev0",
+                            "condition": "true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "disabled_prev",
+                                        "value": "false"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "onExit": {
+                    "events": []
+                }
+            },
+            {
+                "stateName": "Counting",
+                "onInput": {
+                    "events": [
+                        {
+                            "eventName": "testReported_Increase",
+                            "condition": "$input.testInput.current.state.reported.testReported_Increase == true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "testReported_count",
+                                        "value": "$variable.testReported_count + 1"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "eventName": "testReported_Decrease",
+                            "condition": "$input.testInput.current.state.reported.testReported_Decrease == true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "testReported_count",
+                                        "value": "$variable.testReported_count - 1"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "transitionEvents": [
+                        {
+                            "eventName": "Disabling",
+                            "condition": "($variable.testReported_count >= $variable.countThreshold) && ($variable.disabled_prev != true)",
+                            "actions": [],
+                            "nextState": "Disabled_State"
+                        },
+                        {
+                            "eventName": "Enabling",
+                            "condition": "($variable.testReported_count < $variable.countThreshold) && ($variable.enabled_prev != true)",
+                            "actions": [],
+                            "nextState": "Enabled_State"
+                        },
+                        {
+                            "eventName": "Enter",
+                            "condition": "(($variable.testReported_count >= $variable.countThreshold) && ($variable.disabled_prev == true)) || (($variable.testReported_count < $variable.countThreshold) && ($variable.enabled_prev == true))",
+                            "actions": [],
+                            "nextState": "Publish"
+                        }
+                    ]
+                },
+                "onEnter": {
+                    "events": [
+                        {
+                            "eventName": "varFirstRun",
+                            "condition": "$variable.varFirstRun != true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "varFirstRun",
+                                        "value": "false"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "eventName": "testReported_count",
+                            "condition": "$variable.varFirstRun != true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "testReported_count",
+                                        "value": "0"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "eventName": "setThreshold",
+                            "condition": "$variable.varFirstRun != true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "countThreshold",
+                                        "value": "5"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "eventName": "testDesired_state",
+                            "condition": "$variable.varFirstRun != true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "testDesired_state",
+                                        "value": "false"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "eventName": "enabled_prev",
+                            "condition": "$variable.varFirstRun != true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "enabled_prev",
+                                        "value": "false"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "eventName": "disabled_prev",
+                            "condition": "$variable.varFirstRun != true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "disabled_prev",
+                                        "value": "false"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "onExit": {
+                    "events": [
+                        {
+                            "eventName": "varFirstRun_true",
+                            "condition": "true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "varFirstRun",
+                                        "value": "true"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "stateName": "Disabled_State",
+                "onInput": {
+                    "events": [],
+                    "transitionEvents": [
+                        {
+                            "eventName": "Disabled",
+                            "condition": "true",
+                            "actions": [],
+                            "nextState": "Counting"
+                        }
+                    ]
+                },
+                "onEnter": {
+                    "events": [
+                        {
+                            "eventName": "testDesired_false",
+                            "condition": "true",
+                            "actions": [
+                                {
+                                    "iotTopicPublish": {
+                                        "mqttTopic": "$aws/things/01238cfb5a5b7f7a01/shadow/update",
+                                        "payload": {
+                                            "contentExpression": "'{ \"state\": { \"desired\": { \"testDesired\": false, \"thres_fr_aws\": ${$variable.countThreshold}, \"count_fr_aws\": ${$variable.testReported_count} } } }'",
+                                            "type": "JSON"
+                                        }
+                                    }
+                                },
+                                {
+                                    "setVariable": {
+                                        "variableName": "testDesired_state",
+                                        "value": "false"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "eventName": "disabled_prev1",
+                            "condition": "true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "disabled_prev",
+                                        "value": "true"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "eventName": "enabled_prev0",
+                            "condition": "true",
+                            "actions": [
+                                {
+                                    "setVariable": {
+                                        "variableName": "enabled_prev",
+                                        "value": "false"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "onExit": {
+                    "events": []
+                }
+            },
+            {
+                "stateName": "Publish",
+                "onInput": {
+                    "events": [],
+                    "transitionEvents": [
+                        {
+                            "eventName": "Exit",
+                            "condition": "true",
+                            "actions": [],
+                            "nextState": "Counting"
+                        }
+                    ]
+                },
+                "onEnter": {
+                    "events": [
+                        {
+                            "eventName": "Publish_Count",
+                            "condition": "true",
+                            "actions": [
+                                {
+                                    "iotTopicPublish": {
+                                        "mqttTopic": "$aws/things/01238cfb5a5b7f7a01/shadow/update",
+                                        "payload": {
+                                            "contentExpression": "'{ \"state\": { \"desired\": { \"thres_fr_aws\": ${$variable.countThreshold}, \"count_fr_aws\": ${$variable.testReported_count} } } }'",
+                                            "type": "JSON"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "onExit": {
+                    "events": []
+                }
+            }
+        ],
+        "initialStateName": "Counting"
+    },
+    "detectorModelDescription": null,
+    "detectorModelName": "testModel_R5",
+    "evaluationMethod": "SERIAL",
+    "key": null,
+    "roleArn": "arn:aws:iam::503830644201:role/service-role/testDetectorRole"
+}
